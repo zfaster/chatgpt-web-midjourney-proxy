@@ -6,6 +6,7 @@ import { copyToClip } from "@/utils/copy";
 import { isNumber } from "@/utils/is";
 import { localGet, localSaveAny } from "./mjsave";
 import { t } from "@/locales";
+ import post from "@/utils/request";
 //import { useMessage } from "naive-ui";
 export interface gptsType{
     gid:string
@@ -38,7 +39,7 @@ export function upImg(file:any   ):Promise<any>
         reader.onload = (e:any)=>  h( e.target.result);
         reader.readAsDataURL(file);
     })
-    
+
 }
 
 export const file2blob= (selectedFile: any  )=>{
@@ -57,9 +58,9 @@ export const file2blob= (selectedFile: any  )=>{
 
         // 开始读取文件
         reader.readAsArrayBuffer(selectedFile);
-        
+
     })
-     
+
 }
 
 export const blob2file= ( blob:Blob,fileName:string )=>{
@@ -78,9 +79,9 @@ export const  isFileMp3= (filename:string )=>{
 }
 
 function containsChinese(str:string ) {
-  return false; //11.18 都不需要翻译
-//   var reg = /[\u4e00-\u9fa5]/g; // 匹配中文的正则表达式
-//   return reg.test(str);
+  // return false; //11.18 都不需要翻译
+  var reg = /[\u4e00-\u9fa5]/g; // 匹配中文的正则表达式
+  return reg.test(str);
 }
 
 export  async function train( text:string){
@@ -93,19 +94,31 @@ export  async function train( text:string){
             return ;
         }
 
-        
+
         if( !containsChinese(text.trim()) ){
             resolve( text.trim() );
             return ;
         }
-        
-        // myTranslate( text.trim())
-        //     .then((d:any)=>  resolve( d.content.replace(/[?.!]+$/, "")))
-        //     .catch(( )=>   reject('翻译发生错误'))
-        resolve( text.trim() )
-    }) 
-}
 
+			myTranslate( text.trim())
+				.then((d:string)=>  resolve( d.replace(/[?.!]+$/, "")))
+				.catch(( )=>   reject('翻译发生错误'))
+        // resolve( text.trim() )
+    })
+}
+//输入中文进行翻译
+ async function myTranslate(text:string) {
+	 try {
+		 const { data } = await  post<string>({
+			 url: '/translate',
+			 data:{ text }
+		 })
+		 return data;
+	 } catch (error) {
+		 console.error('Error in myTranslate:', error);
+		 throw error;
+	 }
+ }
 export const mlog = (msg: string, ...args: unknown[]) => {
     //localStorage.setItem('debug',1 )
     const logStyles = [
@@ -123,7 +136,7 @@ export const mlog = (msg: string, ...args: unknown[]) => {
 export const myTrim = (str: string, delimiter: string)=>{
     // 构建正则表达式，使用动态的定界符
     const regex = new RegExp(`^${delimiter}+|${delimiter}+$`, 'g');
-    
+
     // 使用正则表达式去除字符串两端的定界符
     return str.replace(regex, '');
 }
@@ -153,7 +166,7 @@ export const mjFetch=(url:string,data?:any)=>{
     header= {...header,...getHeaderApiSecret() }
 
     return new Promise<any>((resolve, reject) => {
-        let opt:RequestInit ={method:'GET'}; 
+        let opt:RequestInit ={method:'GET'};
         opt.headers=header;
         if(data) {
             opt.body= JSON.stringify(data) ;
@@ -168,7 +181,7 @@ export const mjFetch=(url:string,data?:any)=>{
             }).catch(e=>reject({error:e? e.toString() :'json_error',code:'json_error',url:getUrl(url) , status:d2.status  }))
         ).catch(e=>reject({error:e? e.toString() :'fetch fail',data ,code:'fetch_fail',url:getUrl(url)  }))
     })
-     
+
 }
 
 export const myFetch=(url:string,data?:any)=>{
@@ -177,7 +190,7 @@ export const myFetch=(url:string,data?:any)=>{
     //header= {...header  }
 
     return new Promise<any>((resolve, reject) => {
-        let opt:RequestInit ={method:'GET'}; 
+        let opt:RequestInit ={method:'GET'};
         opt.headers=header;
         if(data) {
             opt.body= JSON.stringify(data) ;
@@ -188,7 +201,7 @@ export const myFetch=(url:string,data?:any)=>{
         .catch(e=>reject(e)))
         .catch(e=>reject(e))
     })
-     
+
 }
 export const my2Fetch=(url:string,data?:any)=>{
     mlog('mjFetch', url  );
@@ -196,7 +209,7 @@ export const my2Fetch=(url:string,data?:any)=>{
     //header= {...header  }
 
     return new Promise<any>((resolve, reject) => {
-        let opt:RequestInit ={method:'GET'}; 
+        let opt:RequestInit ={method:'GET'};
         opt.headers=header;
         if(data) {
             opt.body= JSON.stringify(data) ;
@@ -207,7 +220,7 @@ export const my2Fetch=(url:string,data?:any)=>{
         .catch(e=>reject(e)))
         .catch(e=>reject(e))
     })
-     
+
 }
 
 
@@ -223,17 +236,17 @@ export const flechTask= ( chat:Chat.Chat)=>{
         }
         const ts=  await mjFetch(`/mj/task/${chat.mjID}/fetch`);
         chat.opt= ts;
-        chat.loading=   (cnt>=99)?false:true; 
+        chat.loading=   (cnt>=99)?false:true;
         //chat.progress=ts.progress;
-    
+
         if(ts.progress && ts.progress== "100%") chat.loading=false;
 
         homeStore.setMyData({act:'updateChat', actData:chat });
         //"NOT_START" //["SUBMITTED","IN_PROGRESS"].indexOf(ts.status)>-1
         if( ["FAILURE","SUCCESS"].indexOf(ts.status)==-1 && cnt<100 ){
-           
+
             setTimeout(() =>   check( ) , 5000 )
-        } 
+        }
         mlog('task', ts.progress,ts, chat.uuid,chat.index  );
     }
     check();
@@ -260,15 +273,15 @@ export const subTask= async (data:any, chat:Chat.Chat )=>{
         }
     }else if( data.action &&data.action=='blend') { //blend
         d=  await mjFetch('/mj/submit/blend' ,  data.data );
-    }else if( data.action &&data.action=='shorten') { //shorten 
+    }else if( data.action &&data.action=='shorten') { //shorten
         d=  await mjFetch('/mj/submit/shorten' ,  data.data );
         //  mlog('mjFetch shorten' , data );
-    }else if( data.action &&data.action=='face') { //换脸 
-        d=  await mjFetch('/mj/insight-face/swap' , data.data  ); 
+    }else if( data.action &&data.action=='face') { //换脸
+        d=  await mjFetch('/mj/insight-face/swap' , data.data  );
         //mlog('换年服务', data.data );
-        //return; 
-    }else if( data.action &&data.action=='img2txt') { //图生文 
-            d=  await mjFetch('/mj/submit/describe' , data.data  ); 
+        //return;
+    }else if( data.action &&data.action=='img2txt') { //图生文
+            d=  await mjFetch('/mj/submit/describe' , data.data  );
     }else if( data.action &&data.action=='changeV2') { //执行动作！
         d=  await mjFetch('/mj/submit/action' , data.data  );
     }else {
@@ -289,7 +302,7 @@ export const subTask= async (data:any, chat:Chat.Chat )=>{
     if(d.code==21){
         d=  await mjFetch('/mj/submit/modal' , { taskId:d.result} );
     }
-        
+
      backOpt(d, chat);
    }catch(e:any ){
      mlog('mjFetchError', e )
@@ -297,8 +310,8 @@ export const subTask= async (data:any, chat:Chat.Chat )=>{
      chat.loading=false;
      homeStore.setMyData({act:'updateChat', actData:chat });
    }
-   
-    
+
+
     //if( chat.uuid &&  chat.index) updateChat(chat.uuid,chat.index, chat)
 }
 const backOpt= (d:any, chat:Chat.Chat )=>{
@@ -335,7 +348,7 @@ export const getSeed = async (cchat:Chat.Chat,message:any )=>{
       const res:any  = await mjSeed( cchat.mjID);
       seed= res.result;
       if(seed>0 ) {
-       
+
         if ( cchat.opt ){
           cchat.opt.seed = seed;
 
@@ -343,7 +356,7 @@ export const getSeed = async (cchat:Chat.Chat,message:any )=>{
         }
         message.success('获取成功');
       }
-      
+
    } catch(e){
       message.error('获取失败')
    }
@@ -353,23 +366,23 @@ export const getSeed = async (cchat:Chat.Chat,message:any )=>{
     await copyToClip(`${seed}`);
     message.success('复制seed成功');
   }
-  
+
 }
 
 export const getLastVersion=  async ()=>{
     const url='https://api.github.com/repos/Dooy/chatgpt-web-midjourney-proxy/tags?per_page=1';
     const a= await myFetch(url);
-    mlog('lastVersion', a ); 
+    mlog('lastVersion', a );
     return a;
-    
+
 }
 
 export const canVisionModel= (model:string)=>{
     mlog('canVisionModel ',model );
     //['gpt-4-all','gpt-4-v'].indexOf(model)==-1 && model.indexOf('gpt-4-gizmo')==-1
     if( ['gpt-4-all','gpt-4-v','gpt-4v','gpt-3.5-net'].indexOf(model)>-1 ) return true;
-    if(model.indexOf('gpt-4-gizmo')>-1 || model.indexOf('claude-3-opus')>-1 )return true; 
-     
+    if(model.indexOf('gpt-4-gizmo')>-1 || model.indexOf('claude-3-opus')>-1 )return true;
+
     return false;
 }
 export const isCanBase64Model=(model:string)=>{
@@ -377,7 +390,7 @@ export const isCanBase64Model=(model:string)=>{
     return ['gemini-pro-vision','gpt-4o','gpt-4o-2024-05-13','gemini-pro-1.5','gpt-4-turbo','gpt-4-turbo-2024-04-09','gpt-4-vision-preview', defaultVisionModel() ].indexOf(model)>-1
 }
 export const canBase64Model= (model:string)=>{
-    if( isCanBase64Model(model)) return model; 
+    if( isCanBase64Model(model)) return model;
    return defaultVisionModel();
 }
 
@@ -389,7 +402,7 @@ export const defaultVisionModel=()=>{
 }
 
 export const isTTS= ( model:string )=>{
-    if(model.indexOf('tts-1')===0 )return true; 
+    if(model.indexOf('tts-1')===0 )return true;
     return false ;
 }
 
@@ -432,7 +445,7 @@ export   function getFileFromClipboard(event:any ){
                 if (items[i].type.indexOf("image") !== -1 || items[i].kind === 'file') {
                     //rz.push( await fileToBase64(  items[i].getAsFile()) );
                     //mlog('fff', items[i] );
-                    rz.push( items[i].getAsFile()) 
+                    rz.push( items[i].getAsFile())
                 }
             }
 

@@ -113,6 +113,11 @@ const routes: RouteRecordRaw[] = [
     name: 'notFound',
     redirect: '/404',
   },
+	{
+		path: '/login',
+		name: 'Login',
+		component: () => import('@/views/chat/login.vue') // 假设你的登录页面组件路径为'@/views/Login.vue'
+	}
 ]
 
 export const router = createRouter({

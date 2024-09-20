@@ -1,5 +1,5 @@
-<script setup lang="ts"> 
-import { ref,computed,watch,onMounted } from "vue"; 
+<script setup lang="ts">
+import { ref,computed,watch,onMounted } from "vue";
 import config from "./draw.json";
 import {  NSelect,NInput,NButton,NTag,NPopover, useMessage,NInputNumber} from 'naive-ui';
 import {  SvgIcon } from '@/components/common'
@@ -146,7 +146,7 @@ function createPrompt(rz:string){
     if( f.value.sref.trim() != '' ) rzp += ` --sref ${f.value.sref}`
     if( f.value.cref.trim() != '' ) rzp += ` --cref ${f.value.cref}`
     if( f.value.cw && f.value.cw!='' ) rzp += ` --cw ${f.value.cw}`
-    if (f.value.bili > -1) rzp += ` --ar ${vf[f.value.bili].label}` 
+    if (f.value.bili > -1) rzp += ` --ar ${vf[f.value.bili].label}`
     rz = rzk + rz +rzp;
     return rz ;
 }
@@ -329,25 +329,25 @@ const selectFile3=  (input:any)=>{
         <div  >cw(0-100)</div>
         <NInputNumber :min="0" :max="100" v-model:value="f.cw" class="!w-[60%]" size="small" clearable placeholder="0-100 角色参考程度" />
         </section >
-    
-        <section class="mb-4 flex justify-between items-center"  >
-        <div class="w-[45px]">sref</div>
-            <NInput v-model:value="f.sref" size="small" placeholder="图片url 生成风格一致的图像" clearable >
-                 <template #suffix>
-                    <SvgIcon icon="ri:upload-line"  class="cursor-pointer" @click="uploader('sref')"></SvgIcon>
-                </template>
-            </NInput>
-        </section>
-        <section class="mb-4 flex justify-between items-center"  >
-        <div class="w-[45px]">cref</div>
-            <NInput  v-model:value="f.cref" size="small" placeholder="图片url 生成角色一致的图像" clearable>
-                <template #suffix>
-                    <SvgIcon icon="ri:upload-line" class="cursor-pointer"  @click="uploader('cref')"></SvgIcon>
-                </template>
-            </NInput>
-        </section>
-   
-    
+<!--屏蔽sref和cref-->
+<!--        <section class="mb-4 flex justify-between items-center"  >-->
+<!--        <div class="w-[45px]">sref</div>-->
+<!--            <NInput v-model:value="f.sref" size="small" placeholder="图片url 生成风格一致的图像" clearable >-->
+<!--                 <template #suffix>-->
+<!--                    <SvgIcon icon="ri:upload-line"  class="cursor-pointer" @click="uploader('sref')"></SvgIcon>-->
+<!--                </template>-->
+<!--            </NInput>-->
+<!--        </section>-->
+<!--        <section class="mb-4 flex justify-between items-center"  >-->
+<!--        <div class="w-[45px]">cref</div>-->
+<!--            <NInput  v-model:value="f.cref" size="small" placeholder="图片url 生成角色一致的图像" clearable>-->
+<!--                <template #suffix>-->
+<!--                    <SvgIcon icon="ri:upload-line" class="cursor-pointer"  @click="uploader('cref')"></SvgIcon>-->
+<!--                </template>-->
+<!--            </NInput>-->
+<!--        </section>-->
+
+
     <div class="mb-1">
      <n-input    type="textarea"  v-model:value="st.text"   :placeholder="$t('mjchat.prompt')" round clearable maxlength="2000" show-count
       :autosize="{   minRows:2, maxRows:5 }" />

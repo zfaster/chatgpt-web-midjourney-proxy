@@ -31,16 +31,17 @@ export const useAuthStore = defineStore('auth-store', {
   actions: {
     async getSession() {
       try {
-        const { data } = await fetchSession<SessionResponse>()
+				const t = this.token
+        const { data } = await fetchSession<SessionResponse>(t)
         this.session = { ...data }
-        
+
         homeStore.setMyData({session: data });
         if(appStore.$state.theme=='auto' ){
             appStore.setTheme(  data.theme && data.theme=='light' ?'light':'dark')
         }
 
         let str = localStorage.getItem('gptConfigStore');
-        if( ! str ) setTimeout( ()=>  gptConfigStore.setInit() , 500); 
+        if( ! str ) setTimeout( ()=>  gptConfigStore.setInit() , 500);
         return Promise.resolve(data)
       }
       catch (error) {

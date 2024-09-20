@@ -53,20 +53,22 @@ export function fetchChatAPIProcess<T = any>(
   })
 }
 
-export function fetchSession<T>() {
+export function fetchSession<T>(token:string|undefined) {
   if (homeStore.myData.isClient)
   return {"status":"Success","message":"","data":{"isHideServer":false,"isUpload":false,"auth":false,"model":"ChatGPTAPI","amodel":"gpt-4","isApiGallery":false,"cmodels":"","baiduId":"9d5fa7fc2f5fd585aa8fd3010d19be1e","googleId":"","notify":"","disableGpt4":"","isWsrv":"","uploadImgSize":"1","gptUrl":"","theme":"dark","isCloseMdPreview":false}}
-  
+
   return post<T>({
     url: '/session',
+		data:{token}
   })
 }
 
-export function fetchVerify<T>(token: string) {
-  return post<T>({
-    url: '/verify',
-    data: { token },
-  })
+export function fetchVerify<T>(username:string,token: string) {
+
+	return post<T>({
+		url: '/verify',
+		data: { username,token },
+	})
 }
 
 export * from "./mjapi"

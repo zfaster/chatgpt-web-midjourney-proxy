@@ -2,7 +2,7 @@ import express from 'express'
 import type { RequestProps } from './types'
 import type { ChatMessage } from './chatgpt'
 import { chatConfig, chatReplyProcess, currentModel } from './chatgpt'
-import { auth, authV2, mlog, regCookie, turnstileCheck, verify } from './middleware/auth'
+import {auth, authV2, getValue, login_token, mlog, regCookie, turnstileCheck, verify} from './middleware/auth'
 import { limiter } from './middleware/limiter'
 import { isNotEmptyString,formattedDate } from './utils/is'
 import multer from "multer"
@@ -17,6 +17,8 @@ import FormData  from 'form-data'
 import axios from 'axios';
 import AWS  from 'aws-sdk';
 import { v4 as uuidv4} from 'uuid';
+import DBLogger from "./middleware/dblog";
+import {SocksProxyAgent} from "socks-proxy-agent";
 
 
 const app = express()
@@ -84,22 +86,38 @@ router.post('/session', async (req, res) => {
     const isHideServer= isNotEmptyString(  process.env.HIDE_SERVER );
     const amodel=   process.env.OPENAI_API_MODEL?? "gpt-3.5-turbo" ;
     const isApiGallery=  isNotEmptyString(  process.env.MJ_API_GALLERY );
-    const cmodels =   process.env.CUSTOM_MODELS??'' ;
+    let cmodels =   process.env.CUSTOM_MODELS??'' ;
     const baiduId=process.env.TJ_BAIDU_ID?? "" ;
     const googleId=process.env.TJ_GOOGLE_ID?? "" ;
     const notify = process.env.SYS_NOTIFY?? "" ;
     const disableGpt4 = process.env.DISABLE_GPT4?? "" ;
     const isUploadR2 = isNotEmptyString(process.env.R2_DOMAIN);
-    const isWsrv =  process.env.MJ_IMG_WSRV?? "" 
-    const uploadImgSize =  process.env.UPLOAD_IMG_SIZE?? "1" 
-    const gptUrl = process.env.GPT_URL?? ""; 
-    const theme = process.env.SYS_THEME?? "dark"; 
+    const isWsrv =  process.env.MJ_IMG_WSRV?? ""
+    const uploadImgSize =  process.env.UPLOAD_IMG_SIZE?? "1"
+    const gptUrl = process.env.GPT_URL?? "";
+    const theme = process.env.SYS_THEME?? "dark";
     const isCloseMdPreview = process.env.CLOSE_MD_PREVIEW?true:false
     const uploadType= process.env.UPLOAD_TYPE
     const turnstile= process.env.TURNSTILE_SITE
     const menuDisable= process.env.MENU_DISABLE??""
     const visionModel= process.env.VISION_MODEL??""
 
+		const {token} = req.body as { token: string | undefined }
+		let expireToken = false;
+		// console.log(token);
+		if (token) {
+			var user_info = login_token[token]
+			if (!user_info) {
+				expireToken = true
+			}else if(user_info.models){
+				if(cmodels){
+					cmodels = cmodels+","+user_info.models
+				}else{
+					cmodels = user_info.models
+				}
+
+			}
+		}
     const data= { disableGpt4,isWsrv,uploadImgSize,theme,isCloseMdPreview,uploadType,
       notify , baiduId, googleId,isHideServer,isUpload, auth: hasAuth
       , model: currentModel(),amodel,isApiGallery,cmodels,isUploadR2,gptUrl
@@ -119,19 +137,28 @@ router.get('/reg', regCookie )
     ? process.env.OPENAI_API_BASE_URL
     : 'https://api.openai.com'
 
-app.use('/mjapi',authV2 , proxy(process.env.MJ_SERVER?process.env.MJ_SERVER:'https://api.openai.com', {
-  https: false, limit: '10mb',
-  proxyReqPathResolver: function (req) {
-    return req.originalUrl.replace('/mjapi', '') // 将URL中的 `/mjapi` 替换为空字符串
-  },
-  proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
-    if(  process.env.MJ_API_SECRET ) proxyReqOpts.headers['mj-api-secret'] = process.env.MJ_API_SECRET;
-    proxyReqOpts.headers['Content-Type'] = 'application/json';
-    proxyReqOpts.headers['Mj-Version'] = pkg.version;
-    return proxyReqOpts;
-  },
-  //limit: '10mb'
-
+app.use('/mjapi', authV2, proxy(process.env.MJ_SERVER ? process.env.MJ_SERVER : 'https://api.openai.com', {
+	https: false, limit: '10mb',
+	proxyReqPathResolver: function (req) {
+		req.requestId = uuidv4(); // 创建一个唯一的请求ID
+		return req.originalUrl.replace('/mjapi', '') // 将URL中的 `/mjapi` 替换为空字符串
+	},
+	proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
+		proxyReqOpts.headers['mj-api-secret'] = process.env.MJ_API_SECRET;
+		proxyReqOpts.headers['Content-Type'] = 'application/json';
+		proxyReqOpts.headers['Mj-Version'] = pkg.version;
+		return proxyReqOpts;
+	},
+	userResDecorator: function (proxyRes, proxyResData, userReq, userRes) {
+		DBLogger.logResponse(userReq.requestId, proxyResData);
+		return proxyResData;
+	},
+	proxyReqBodyDecorator: function (bodyContent, srcReq) {
+		const Authorization = srcReq.header('X-Ptoken')
+		const token_info = getValue(Authorization)
+		DBLogger.logRequest(srcReq.requestId, token_info, bodyContent);
+		return bodyContent;
+	}
 }));
 
 
@@ -292,24 +319,51 @@ app.use(
   }
 );
 
- 
+
 
 //代理openai 接口
 app.use('/openapi' ,authV2, turnstileCheck, proxy(API_BASE_URL, {
   https: false, limit: '10mb',
-  proxyReqPathResolver: function (req) {
-    return req.originalUrl.replace('/openapi', '') // 将URL中的 `/openapi` 替换为空字符串
-  },
-  proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
-    proxyReqOpts.headers['Authorization'] ='Bearer '+ process.env.OPENAI_API_KEY;
-    proxyReqOpts.headers['Content-Type'] = 'application/json';
-    proxyReqOpts.headers['Mj-Version'] = pkg.version;
-    return proxyReqOpts;
-  },
+	proxyReqPathResolver: function (req) {
+		req.requestId = uuidv4(); // 创建一个唯一的请求ID
+		if (API_BASE_URL == 'http://bd-gateway-agent.sdpsg.101.com') {
+			return req.originalUrl.replace('/openapi', '/openai')
+		}
+		if (API_BASE_URL.indexOf("47.253")>0 ) {
+			return req.originalUrl.replace('/openapi/v1', '')
+		}
+		return req.originalUrl.replace('/openapi', '') // 将URL中的 `/openapi` 替换为空字符串
+	},
+	proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
+		if (isNotEmptyString(process.env.SOCKS_PROXY_HOST) && isNotEmptyString(process.env.SOCKS_PROXY_PORT)) {
+			proxyReqOpts.agent = new SocksProxyAgent({
+				hostname: process.env.SOCKS_PROXY_HOST,
+				port: process.env.SOCKS_PROXY_PORT
+			})
+		}
+		proxyReqOpts.headers['Authorization'] = 'Bearer ' + process.env.OPENAI_API_KEY;
+		if(srcReq.body && srcReq.body['model']){
+			proxyReqOpts.headers['model'] = srcReq.body['model'];
+		}
+		// proxyReqOpts.headers['module'] = 'Azure_GPT3_5';
+		proxyReqOpts.headers['Content-Type'] = 'application/json';
+		proxyReqOpts.headers['Mj-Version'] = pkg.version;
+		return proxyReqOpts;
+	},
+	userResDecorator: function (proxyRes, proxyResData, userReq, userRes) {
+		DBLogger.logResponse(userReq.requestId, proxyResData);
+		return proxyResData;
+	},
+	proxyReqBodyDecorator: function (bodyContent, srcReq) {
+		const Authorization = srcReq.header('X-Ptoken')
+		const token_info = getValue(Authorization)
+		DBLogger.logRequest(srcReq.requestId, token_info, bodyContent);
+		return bodyContent;
+	}
   //limit: '10mb'
 }));
 
-//代理sunoApi 接口 
+//代理sunoApi 接口
 app.use('/sunoapi' ,authV2, proxy(process.env.SUNO_SERVER??  API_BASE_URL, {
   https: false, limit: '10mb',
   proxyReqPathResolver: function (req) {
@@ -318,17 +372,48 @@ app.use('/sunoapi' ,authV2, proxy(process.env.SUNO_SERVER??  API_BASE_URL, {
   proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
     //mlog("sunoapi")
     if ( process.env.SUNO_KEY ) proxyReqOpts.headers['Authorization'] ='Bearer '+process.env.SUNO_KEY;
-    else   proxyReqOpts.headers['Authorization'] ='Bearer '+process.env.OPENAI_API_KEY;  
+    else   proxyReqOpts.headers['Authorization'] ='Bearer '+process.env.OPENAI_API_KEY;
     proxyReqOpts.headers['Content-Type'] = 'application/json';
     proxyReqOpts.headers['Mj-Version'] = pkg.version;
     return proxyReqOpts;
   },
-  
+
 }));
-
-
+router.post('/translate', async (req, res) => {
+	const text = req.body.text;
+	if (!text) {
+		res.status(400).send({ error: 'Missing text parameter' });
+		return;
+	}
+	try {
+		const data = await myTranslate(text);
+		res.send({ status: 'Success', message: '', data });
+	} catch (error) {
+		res.send({status: 'Fail', message: error.message, data: null})
+	}
+});
+async function myTranslate(text: string): Promise<string> {
+	const tokenUrl = "https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=8eEv5gprqLdtlwx10csvehkq&client_secret=lruXnwEl51GQqQamfiIWehp6BuF0UXRU";
+	const response = await axios.get(tokenUrl);
+	const atoken = response.data["access_token"];
+	const translateUrl = 'https://aip.baidubce.com/rpc/2.0/mt/texttrans/v1?access_token=' + atoken;
+	const headers = {'Content-Type': 'application/json'};
+	const payload = {'q': text, 'from': 'zh', 'to': 'en', 'termIds': ''};
+	const r = await axios.post(translateUrl, payload, {headers: headers});
+	if (r.status === 200) {
+		const result = r.data;
+		const dst = result["result"]["trans_result"][0]["dst"];
+		return dst;
+	} else {
+		throw new Error('Translation request failed with status: ' + r.status);
+	}
+}
 app.use('', router)
 app.use('/api', router)
 app.set('trust proxy', 1)
 
-app.listen(3002, () => globalThis.console.log('Server is running on port 3002'))
+let port = process.env.PORT
+if(!port){
+	port = "8080"
+}
+app.listen(parseInt(port, 10), () => globalThis.console.log('Server is running on port '+port))
