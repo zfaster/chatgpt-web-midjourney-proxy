@@ -19,6 +19,7 @@ import AWS  from 'aws-sdk';
 import { v4 as uuidv4} from 'uuid';
 import DBLogger from "./middleware/dblog";
 import {SocksProxyAgent} from "socks-proxy-agent";
+import { viggleProxyFileDo,viggleProxy, lumaProxy, runwayProxy, ideoProxy, ideoProxyFileDo, klingProxy } from './myfun'
 
 
 const app = express()
@@ -101,6 +102,13 @@ router.post('/session', async (req, res) => {
     const turnstile= process.env.TURNSTILE_SITE
     const menuDisable= process.env.MENU_DISABLE??""
     const visionModel= process.env.VISION_MODEL??""
+    const systemMessage= process.env.SYSTEM_MESSAGE??""
+    const customVisionModel= process.env.CUSTOM_VISION_MODELS??""
+    const backgroundImage = process.env.BACKGROUND_IMAGE ?? ""
+    let  isHk= (process.env.OPENAI_API_BASE_URL??"").toLocaleLowerCase().indexOf('-hk')>0
+    if(!isHk)  isHk= (process.env.LUMA_SERVER??"").toLocaleLowerCase().indexOf('-hk')>0
+    if(!isHk)  isHk= (process.env.VIGGLE_SERVER??"").toLocaleLowerCase().indexOf('-hk')>0
+
 
 		const {token} = req.body as { token: string | undefined }
 		let expireToken = false;
@@ -121,7 +129,7 @@ router.post('/session', async (req, res) => {
     const data= { disableGpt4,isWsrv,uploadImgSize,theme,isCloseMdPreview,uploadType,
       notify , baiduId, googleId,isHideServer,isUpload, auth: hasAuth
       , model: currentModel(),amodel,isApiGallery,cmodels,isUploadR2,gptUrl
-      ,turnstile,menuDisable,visionModel
+      ,turnstile,menuDisable,visionModel,systemMessage,customVisionModel,backgroundImage,isHk
     }
     res.send({  status: 'Success', message: '', data})
   }
@@ -379,6 +387,27 @@ app.use('/sunoapi' ,authV2, proxy(process.env.SUNO_SERVER??  API_BASE_URL, {
   },
 
 }));
+
+
+
+//代理luma 接口
+app.use('/luma' ,authV2, lumaProxy  );
+app.use('/pro/luma' ,authV2, lumaProxy );
+
+//代理 viggle 文件
+app.use('/viggle/asset',authV2 ,  upload2.single('file'), viggleProxyFileDo );
+app.use('/pro/viggle/asset',authV2 ,  upload2.single('file'), viggleProxyFileDo );
+//代理 viggle
+app.use('/viggle' ,authV2, viggleProxy);
+app.use('/pro/viggle' ,authV2, viggleProxy);
+
+app.use('/runway' ,authV2, runwayProxy  );
+app.use('/kling' ,authV2, klingProxy  );
+
+app.use('/ideogram/remix' ,authV2,  upload2.single('image_file'), ideoProxyFileDo  );
+app.use('/ideogram' ,authV2, ideoProxy  );
+
+
 router.post('/translate', async (req, res) => {
 	const text = req.body.text;
 	if (!text) {
@@ -408,6 +437,7 @@ async function myTranslate(text: string): Promise<string> {
 		throw new Error('Translation request failed with status: ' + r.status);
 	}
 }
+
 app.use('', router)
 app.use('/api', router)
 app.set('trust proxy', 1)
