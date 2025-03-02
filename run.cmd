@@ -1,0 +1,21 @@
+docker run --name mj-chat -d -p 3002:3002 ^
+  -v /ops/data/mj/permission:/app/sys/permission ^
+  -v /ops/data/mj/logs:/logs ^
+  -e PORT=3002 ^
+  -e SYS_THEME=light ^
+  -e DB_HOST=master.debug.all2.mysql.sdp ^
+  -e DB_PORT=3302 ^
+  -e DB_USER=user_veY4Ebj1IB ^
+  -e DB_PWD=5u2kjXsx8D ^
+  -e DB_NAME=qa_mysql_ai_assitant ^
+  -e OPENAI_API_KEY=a93796abe33f0c6e1d52d7c15cd9c1f5 ^
+  -e MJ_API_SECRET=320bdd5f-a809-486e-7131-4d3af548d4c8 ^
+  -e AUTH_SECRET_KEY=123456 ^
+  -e OPENAI_API_BASE_URL=http://47.253.97.14:8380 ^
+  -e OPENAI_API_MODEL=Azure_GPT3_5 ^
+  -e SUNO_SERVER=http://192.168.181.35:8008 ^
+  -e VISION_MODEL=Azure_GPT4o ^
+  -e HIDE_SERVER=true ^
+  -e MENU_DISABLE=gpts ^
+  -e MJ_SERvueVER=http://192.168.72.135:6013 ^
+  harbor-in.99.com/nd-design-ai/chatgpt-web-midjourney-proxy:20240525.225011

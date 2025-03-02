@@ -129,7 +129,7 @@ router.post('/session', async (req, res) => {
     const data= { disableGpt4,isWsrv,uploadImgSize,theme,isCloseMdPreview,uploadType,
       notify , baiduId, googleId,isHideServer,isUpload, auth: hasAuth
       , model: currentModel(),amodel,isApiGallery,cmodels,isUploadR2,gptUrl
-      ,turnstile,menuDisable,visionModel,systemMessage,customVisionModel,backgroundImage,isHk
+      ,turnstile,menuDisable,expireToken,visionModel,systemMessage,customVisionModel,backgroundImage,isHk
     }
     res.send({  status: 'Success', message: '', data})
   }

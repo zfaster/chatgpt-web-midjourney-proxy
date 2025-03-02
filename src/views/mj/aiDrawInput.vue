@@ -44,6 +44,7 @@ watch(()=>st.value.drawType, (n:string)=> {
 <!--    </n-tab-pane>-->
     <n-tab-pane name="blend" :tab="$t('mjchat.blend')">
      <div class="p-4"><aiBlend  /></div>
+		</n-tab-pane>
     <n-tab-pane name="draw" tab="MidJourney" >
       <!--  -->
     <n-tabs type="segment" animated   default-value="draw23" size="small">
@@ -65,7 +66,7 @@ watch(()=>st.value.drawType, (n:string)=> {
 <!--     <div class="p-4"><aiDall  /></div>-->
 <!--    </n-tab-pane>-->
 </n-tabs>
-
+<n-tabs>
     <n-tab-pane name="dall3" tab="Dall.E">
      <div class="p-4"><aiDall  /></div>
     </n-tab-pane>
