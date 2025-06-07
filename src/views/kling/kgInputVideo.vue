@@ -6,7 +6,7 @@ import { homeStore } from '@/store';
 import { klingFeed, klingFetch } from '@/api/kling';
 import { t } from '@/locales';
 
-const f= ref({prompt:'',negative_prompt:'',image:'',image_tail:'',aspect_ratio:'1:1',mode:'std', duration:'5'});
+const f= ref({prompt:'',negative_prompt:'',image:'',image_tail:'',aspect_ratio:'1:1',mode:'std', duration:'5',model:'kling-v1-6'});
 const st= ref({bili:0,isLoading:false,camera_type:''});
 
 const fsRef= ref() ; 
@@ -25,7 +25,12 @@ const durationOptions=[ {label:'5s',value:'5'},{label:'10s',value:'10'}]
 const cameraOption=[ {label: t('mj.cnull'),value:''},{label: t('mj.down_back'),value:'down_back'}
 ,{label:t('mj.forward_up'),value:'forward_up'},{label:t('mj.right_turn_forward'),value:'right_turn_forward'},{label:t('mj.left_turn_forward'),value:'left_turn_forward'}
 ]
-
+const mvOption= [
+{label:'kling-v1-6',value: 'kling-v1-6'}
+,{label:'kling-v1-5',value: 'kling-v1-5'}
+,{label:'kling-v1',value: 'kling-v1'}
+,{label:'kling-v2-master',value: 'kling-v2-master'}
+ ]
 
 function selectFile(input:any){
    // fsFile.value= input.target.files[0];
@@ -70,6 +75,10 @@ const createImg = async ()=>{
         }
         //  mlog('abc>> ',  abc  );
         // return 
+        if (abc.model=='kling-v2-master') {
+            delete abc.mode;
+        }
+
         const d:any= await klingFetch('/v1/videos/'+ cat , abc  )
         mlog('img', d );
         klingFeed( d.data.task_id , cat ,  f.value.prompt )
@@ -100,6 +109,11 @@ onMounted(() => {
     </section> 
     
     <section class="mb-4 flex justify-between items-center" >
+         <div>{{ $t('mjset.model') }}</div>
+         <n-select v-model:value="f.model" size="small" :options="mvOption"  class="!w-[70%]" />
+         
+    </section>
+      <section class="mb-4 flex justify-between items-center" >
          <div>{{ $t('mj.mode') }}</div>
          <n-select v-model:value="f.mode" size="small" :options="modeOptions"  class="!w-[70%]" />
          
@@ -117,7 +131,7 @@ onMounted(() => {
 
     <section class="mb-4 flex justify-between items-center" >
          <div>{{ $t('mj.nohead') }}</div>
-          <NInput v-model="f.negative_prompt" size="small"  class="!w-[70%]"  clearable :placeholder="$t('mj.negative_prompt')" />
+          <NInput v-model:value="f.negative_prompt" size="small"  class="!w-[70%]"  clearable :placeholder="$t('mj.negative_prompt')" />
     </section>
 
      <section class="mb-4 flex justify-between items-center" >

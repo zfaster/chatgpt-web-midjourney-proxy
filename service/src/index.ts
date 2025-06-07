@@ -17,9 +17,9 @@ import FormData  from 'form-data'
 import axios from 'axios';
 import AWS  from 'aws-sdk';
 import { v4 as uuidv4} from 'uuid';
+import { viggleProxyFileDo,viggleProxy, lumaProxy, runwayProxy, ideoProxy, ideoProxyFileDo, klingProxy, pikaProxy, udioProxy, runwaymlProxy, pixverseProxy, sunoProxy } from './myfun'
 import DBLogger from "./middleware/dblog";
 import {SocksProxyAgent} from "socks-proxy-agent";
-import { viggleProxyFileDo,viggleProxy, lumaProxy, runwayProxy, ideoProxy, ideoProxyFileDo, klingProxy } from './myfun'
 
 
 const app = express()
@@ -94,7 +94,7 @@ router.post('/session', async (req, res) => {
     const disableGpt4 = process.env.DISABLE_GPT4?? "" ;
     const isUploadR2 = isNotEmptyString(process.env.R2_DOMAIN);
     const isWsrv =  process.env.MJ_IMG_WSRV?? ""
-    const uploadImgSize =  process.env.UPLOAD_IMG_SIZE?? "1"
+    const uploadImgSize =  process.env.UPLOAD_IMG_SIZE?? "3"
     const gptUrl = process.env.GPT_URL?? "";
     const theme = process.env.SYS_THEME?? "dark";
     const isCloseMdPreview = process.env.CLOSE_MD_PREVIEW?true:false
@@ -388,7 +388,7 @@ app.use('/sunoapi' ,authV2, proxy(process.env.SUNO_SERVER??  API_BASE_URL, {
 
 }));
 
-
+app.use('/suno' ,authV2,sunoProxy );
 
 //代理luma 接口
 app.use('/luma' ,authV2, lumaProxy  );
@@ -401,11 +401,17 @@ app.use('/pro/viggle/asset',authV2 ,  upload2.single('file'), viggleProxyFileDo 
 app.use('/viggle' ,authV2, viggleProxy);
 app.use('/pro/viggle' ,authV2, viggleProxy);
 
+app.use('/runwayml' ,authV2, runwaymlProxy  );
 app.use('/runway' ,authV2, runwayProxy  );
 app.use('/kling' ,authV2, klingProxy  );
 
 app.use('/ideogram/remix' ,authV2,  upload2.single('image_file'), ideoProxyFileDo  );
 app.use('/ideogram' ,authV2, ideoProxy  );
+app.use('/pika' ,authV2, pikaProxy  );
+app.use('/udio' ,authV2, udioProxy  );
+
+app.use('/pixverse' ,authV2, pixverseProxy  );
+
 
 
 router.post('/translate', async (req, res) => {

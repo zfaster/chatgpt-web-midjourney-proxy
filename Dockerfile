@@ -2,6 +2,8 @@
 FROM node:lts-alpine AS frontend
 
 RUN npm install pnpm -g
+# 安装 Git
+RUN apk add --no-cache git
 
 ARG workdir=/app
 WORKDIR ${workdir}
@@ -19,7 +21,6 @@ RUN pnpm run build
 
 # build backend
 FROM node:lts-alpine as backend
-
 
 RUN npm install pnpm -g
 
