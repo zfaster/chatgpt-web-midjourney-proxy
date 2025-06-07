@@ -21,7 +21,8 @@ const vf=[{s:'width: 100%; height: 100%;',label:'1:1'}
 ,{s:'width: 50%; height: 100%;',label:'9:16'}
  ];
 
-const f=ref({bili:-1, quality:'',view:'',light:'',shot:'',style:'', styles:'',version:'--v 6.0',sref:'',cref:'',cw:'',});
+const f=ref({bili:-1, quality:'',view:'',light:'',shot:'',style:'', styles:'',version:'--v 7.0'
+,sref:'',cref:'',cw:'',oref:'' });
 const st =ref({text:'',isDisabled:false,isLoad:false
     ,fileBase64:[],bot:'',showFace:false,upType:''
 });
@@ -145,9 +146,12 @@ function createPrompt(rz:string){
     mlog('createPrompt ', rz,  f.value  );
     if( f.value.sref.trim() != '' ) rzp += ` --sref ${f.value.sref}`
     if( f.value.cref.trim() != '' ) rzp += ` --cref ${f.value.cref}`
+    if(  f.value.oref &&  f.value.oref.trim() != '' ) rzp += ` --oref ${f.value.oref}`
     if( f.value.cw && f.value.cw!='' ) rzp += ` --cw ${f.value.cw}`
     if (f.value.bili > -1) rzp += ` --ar ${vf[f.value.bili].label}` 
     rz = rzk + rz +rzp;
+
+    // mlog('createPrompt over ', rz  );
     return rz ;
 }
 
@@ -203,8 +207,22 @@ watch(()=>homeStore.myData.act,(n)=>{
    // n=='copy' && copy2();
     n=='same2' && same2();
 });
+watch(()=>f.value,(n)=>{
+    mlog("变化", n )
+    localStorage.setItem("mjinput",  JSON.stringify(n))
+},{deep:true} );
 onMounted(()=>{
     homeStore.myData.act=='same2' && same2();
+
+    let minput=  localStorage.getItem('mjinput')
+    if(minput ){
+      try {
+        const a=JSON.parse(minput)
+        f.value=a
+      } catch (error) {
+        mlog("错误", error )
+      }
+    }
 });
 
 
@@ -250,6 +268,7 @@ const clearAll=()=>{
   f.value.cref='';
   f.value.cw='';
   f.value.sref='';
+  f.value.oref='';
 }
 
 const uploader=(type:string)=>{
@@ -275,6 +294,8 @@ const selectFile3=  (input:any)=>{
             if(d.code== 1){
                 if( st.value.upType=='cref'){
                     f.value.cref= d.result[0];
+                }else if(st.value.upType=='oref' ){
+                    f.value.oref= d.result[0];
                 }else{
                     f.value.sref= d.result[0];
                 }
@@ -338,11 +359,22 @@ const selectFile3=  (input:any)=>{
                 </template>
             </NInput>
         </section>
+
         <section class="mb-4 flex justify-between items-center"  >
         <div class="w-[45px]">cref</div>
             <NInput  v-model:value="f.cref" size="small" placeholder="图片url 生成角色一致的图像" clearable>
                 <template #suffix>
                     <SvgIcon icon="ri:upload-line" class="cursor-pointer"  @click="uploader('cref')"></SvgIcon>
+                </template>
+            </NInput>
+        </section>
+
+
+        <section class="mb-4 flex justify-between items-center"  >
+        <div class="w-[45px]">oref</div>
+            <NInput  v-model:value="f.oref" size="small" placeholder="图片url 全向参考的图像" clearable>
+                <template #suffix>
+                    <SvgIcon icon="ri:upload-line" class="cursor-pointer"  @click="uploader('oref')"></SvgIcon>
                 </template>
             </NInput>
         </section>

@@ -175,7 +175,7 @@ export default {
     ,tQuality:'画质'
     ,tStyles:'艺术程度'
     ,tVersion:'模型版本'
-    ,dalleInfo:' 说明：   <li>1 dall-e 是openAi提供的画图模型</li>  <li>2 openAi的图片有时效性，请做好备份</li>   <li>3 注意：1790px的图片价格是双倍</li> '
+    ,dalleInfo:' 说明：   <li>1 dall-e 是openAi提供的画图模型</li>  <li>2 openAi的图片有时效性，请做好备份</li>   <li>3 注意：1790px的图片价格是双倍</li> <li>4 注意：dall-e-2、gpt-image-1 支持多图参考</li> '
     ,version:'版本'
     ,size:'尺寸'
     ,blendInfo:'说明： <li>1 合成至少2张图片</li> <li>2 最多可传6张图</li> '
@@ -316,7 +316,7 @@ export default {
     ,pro:'高表现'
     ,needImg:'请传参考图才生效！'
     ,seed:'种子数字 1~2147483647'
-    ,klingInfo:'说明： <li>1. 高表现是3.5倍的价格</li>  <li>2. 10s是2倍的价格</li> <li>3. 尾帧必须有参考图片才生效</li>'
+    ,klingInfo:'说明： <li>1. 高表现是3.5倍的价格</li>  <li>2. 10s是2倍的价格</li> <li>3. 尾帧必须有参考图片才生效</li> <li>4. v1.5 v1.6的价格都是v1.0的2倍</li><li>5. v2-master的价格都是v1.0的10倍</li>'
 
     ,camera_type:'镜头'
     ,cnull:'智能匹配'
@@ -324,6 +324,54 @@ export default {
     ,forward_up: '推进上移'
     ,right_turn_forward: '右旋推进'
     ,left_turn_forward: '左旋推进'
+
+    ,kling:'可灵'
+
+    ,rttab:'语音'
+    ,rtinfo:'实时语音对话服务(realtime)'
+    ,rtsetting:'请设置服务端，目前Realtime 仅支持远程服务；需本地服务请联系作者'
+    ,rjcloded:'连接已断开'
+    ,checkkey:'请检查 api key 是否正确'
+    ,rtsuccess:'连接正常保持通话'
+    ,rtservererror:'websocket 连接服务器错误！'
+    ,rtservererror2:'不支持录音，可能是设备原因！'
+    ,rtconecting:'正在连接服务器'
+
+    ,confirmDelete:'确认要删除？'
+    ,pikaabout:'Pika 相关'
+    ,pikaserver:'Pika 接口地址'
+    ,pikakeyPlaceholder:'Pika 的API Key 可不填'
+    ,createFail:'生成失败'
+    ,selecteff:'参考效果'
+
+    ,udioabout:'Udio 相关'
+    ,udiokeyPlaceholder:'Udio 的API Key 可不填'
+    ,udioserver:'Udio 接口地址'
+    ,ud_prompt:'提示词'
+    ,ud_prompt_pls:'提示词: 描述、曲风'
+    ,ud_ly_write:'自定义歌词'
+    ,ud_ly_auto:'智能歌词'
+    ,ud_ly_null:'纯音乐'
+    ,ud_v32:'实惠'
+    ,ud_v130:'时间长'
+    ,ud_info:'注意：<ul><li>1.udio-32 时长短</li><li>2.udio-130 价格是udio-32的2倍 </li><li>3.提示词内可以放风格、描述等</li></ul>'
+    ,ud_fail:"这首歌生成失败！"
+    ,ud_doing:"生成中无法播放"
+    ,ud_continuation:"后扩展"
+    ,ud_precede:"前扩展"
+
+    ,upImg2:'<span><b>上传图片</b><br/>该模型支持识图<br>注意：会有额外的图片费用<br/>格式: jpeg jpg png gif</span><p>支持拖拽</p> <p class="pt-2"><b>上传MP3 MP4</b> <br>会自动直接调用 whisper-1 模型<br>格式有：mp3 mp4 mpeg mpga m4a wav webm</p>'
+    ,rml_info:'注意：<ul><li>1.必须带图</li><li>2.模型支持 gen3a_turbo、gen4_turbo </li><li>3.10s的价格是5s的双倍</li><li>4.gen4_turbo 支持的ratio 比例类型更多</li></ul>'
+    ,rml_heng:'横屏'
+    ,rml_shu:'竖屏'
+
+    ,pixabout:'Pixverse 相关'
+    ,pixkeyPlaceholder:'Pixverse 的API Key 可不填'
+    ,pixserver:'Pixverse 接口地址'
+    ,pixinfo:' 说明：<br>  <ul> <li>1.以v3.5 360p 时长5s 模式 Normal 为基数</li><li>2.支持v4 v3.5 低版本不再支持</li>  <li>3.时长8s 是 2倍</li> <li>4.540P 1.5倍 720P 2倍 1080P 4倍</li> <li>5.模式 performance 2倍</li> <li>6.倍数是相乘的 比如 720P 时长8s 那就是 2*2是4倍，如果再加performance 就是8倍</li></ul>'
+  
+   ,server_load:'服务端获取'
+   ,model_select:'模型选择'
   },
 
 	draw: {
@@ -438,7 +486,7 @@ export default {
     ,nodata:'请先创作才有歌曲列表'
 
     ,menu:'音乐'
-    ,menuinfo:'Suno 音乐创作'
+    ,menuinfo:'Suno、Udio等音乐创作'
     ,server:'Suno 接口地址'
     ,serverabout:'Suno 相关'
     ,setOpenKeyPlaceholder:'Suno API 的相关KEY；可不填'
@@ -472,12 +520,12 @@ export default {
     download:'下载',
     extend:'延展',
 
-    lumainfo:'说明：<ul><li>1.pro与relax演示视频都是有水印的链接</li><li>2.pro无水印版本需要通过“下载按钮”得到下载链接</li><li>3.pro得到的链接有时限；请及时保存mp4文件到本地</li><li>4.pro请在生成后的30分钟内；将mp4保存到本地，渠道号也可能被封或者下线</li> <li>5.pro当下载链接无效时会给出带水印的视频链接</li></ul>',
+    lumainfo:'说明：<ul><li >1.relax版已下线，<b style="color:red">入口已经更换到pro无水印版</b></li><li>2.无水印版本需要通过“下载按钮”得到下载链接</li><li>3.pro得到的链接有时限；请及时保存mp4文件到本地</li><li>4.请在生成后的30分钟内；将mp4保存到本地，渠道号也可能被封或者下线</li> <li>5.当下载链接无效时会给出带水印的视频链接</li></ul>',
     runwayabout:'Runway 相关',
     runwayserver:'Runway 接口地址',
     setOpenKeyPlaceholder2:'Runway API 的key, 可不填',
     endImg:'尾帧图',
-    runwayinfo:'说明：<ul><li>1. Runway 图片与视频都有有效期</li>  <li>2. 请在生成视频后30分钟内将mp4保存到本地</li>  <li>3. 过期重新获取，可能存在账号下线而获取失败</li><li>4. Gen3A Turbo 必须带图</li></ul>',
+    runwayinfo:'说明：<ul><li>1. Runway 图片与视频都有有效期</li>  <li>2. 请在生成视频后30分钟内将mp4保存到本地</li>  <li>3. 过期重新获取，可能存在账号下线而获取失败</li><li>4. Gen3A Turbo 必须带图或者视频</li><li>5. 参考可以是图或者视频mp4 </li></ul>',
     nosup:'暂不支持',
     rwgen2:'版本: Gen-2, 价格实惠',
     rwgen3:'版本: Gen-3 Alpha',
@@ -495,7 +543,7 @@ export default {
     ,viggleabout:"Viggle 相关",
     viggleserver:"Viggle 接口地址",
     setOpenKeyPlaceholder:'Viggle API 的key, 可不填',
-    info:'说明:<br>1.角色图片最好是个人全身照片<br>2.舞蹈模版视频最好是个人视频 别传群舞',
+    info:'说明:<br>1.角色图片最好是个人全身照片<br>2.舞蹈模版视频最好是个人视频 别传群舞<br>3.生成会给出倍数价格 2电量 表示2倍的基础价格',
     model:'模型',
     bgw:'白色背景',
     bgg:'绿色背景',
